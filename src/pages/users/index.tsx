@@ -4,7 +4,6 @@ import { RiAddLine, RiPencilLine } from "react-icons/ri";
 import { Header } from "../../components/Header";
 import { Pagination } from "../../components/Pagination";
 import { Sidebar } from "../../components/Sidebar";
-import { useQuery } from '@tanstack/react-query'
 import { useUsers } from "../../services/hooks/useUsers";
 import { useState } from "react";
 
