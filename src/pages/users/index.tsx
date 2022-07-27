@@ -1,11 +1,17 @@
-import { Box, Button, Checkbox, Flex, Heading, Icon, Table, Tbody, Td, Th, Thead, Tr, Text, IconButton, useBreakpointValue } from "@chakra-ui/react";
+import { Box, Button, Checkbox, Flex, Heading, Icon, Table, Tbody, Td, Th, Thead, Tr, Text, IconButton, useBreakpointValue, Spinner } from "@chakra-ui/react";
 import Link from "next/link";
 import { RiAddLine, RiPencilLine } from "react-icons/ri";
 import { Header } from "../../components/Header";
 import { Pagination } from "../../components/Pagination";
 import { Sidebar } from "../../components/Sidebar";
+import { useQuery } from '@tanstack/react-query'
+import { useUsers } from "../../services/hooks/useUsers";
+import { useState } from "react";
 
 export default function UsersList() {
+
+    const [page, setPage] = useState(1);
+    const { data, isLoading, isFetching, error } = useUsers(page)
 
     const isWideVersion = useBreakpointValue({
         base: false,
@@ -21,7 +27,11 @@ export default function UsersList() {
 
                 <Box flex="1" borderRadius={8} bg="gray.800" p="8">
                     <Flex mb="8" justify="space-between" align="center">
-                        <Heading size="lg" fontWeight="normal">Usuários</Heading>
+                        <Heading size="lg" fontWeight="normal">
+                            Usuários
+
+                            {!isLoading && isFetching && <Spinner size="sm" color="gary.500" ml="4" />}
+                        </Heading>
 
                         <Link href="/users/create" passHref>
                             <Button
@@ -37,46 +47,69 @@ export default function UsersList() {
                         </Link>
                     </Flex>
 
-                    <Table colorScheme="whiteAlpha">
-                        <Thead>
-                            <Tr>
-                                <Th px={["4", "4", "6"]} color="gray.300" width="8">
-                                    <Checkbox colorScheme="pink" />
-                                </Th>
-                                <Th>Usuário</Th>
-                                {isWideVersion && <Th>Data de cadastro</Th>}
-                                <Th width="8"></Th>
-                            </Tr>
-                        </Thead>
-                        <Tbody>
-                            <Tr>
-                                <Td px={["4", "4", "6"]}>
-                                    <Checkbox colorScheme="pink" />
-                                </Td>
-                                <Td>
-                                    <Box>
-                                        <Text fontWeight="bold">Matheus de Souza</Text>
-                                        <Text fontSize="sm" color="gray.300">matheusdesouza078@gmail.com</Text>
-                                    </Box>
-                                </Td>
-                                {isWideVersion && <Td>25 de Julho, 2022</Td>}
-                                <Td>
-                                    <IconButton
-                                        aria-label="Editar usuário"
-                                        icon={<Icon as={RiPencilLine} fontSize="16" />}
-                                        as="a"
-                                        size="sm"
-                                        fontSize="sm"
-                                        colorScheme="purple"
-                                        cursor="pointer"
-                                    />
+                    {
+                        isLoading ? (
+                            <Flex justify="center">
+                                <Spinner />
+                            </Flex>
+                        ) : error ? (
+                            <Flex justify="center">
+                                <Text color="red">Falha ao obter os dados dos usuários.</Text>
+                            </Flex>
+                        ) : (
+                            <>
+                                <Table colorScheme="whiteAlpha">
+                                    <Thead>
+                                        <Tr>
+                                            <Th px={["4", "4", "6"]} color="gray.300" width="8">
+                                                <Checkbox colorScheme="pink" />
+                                            </Th>
+                                            <Th>Usuário</Th>
+                                            {isWideVersion && <Th>Data de cadastro</Th>}
+                                            <Th width="8"></Th>
+                                        </Tr>
+                                    </Thead>
+                                    <Tbody>
+                                        {data.users.map((user) => {
+                                            return (
+                                                <Tr key={user.id}>
+                                                    <Td px={["4", "4", "6"]}>
+                                                        <Checkbox colorScheme="pink" />
+                                                    </Td>
+                                                    <Td>
+                                                        <Box>
+                                                            <Text fontWeight="bold">{user.name}</Text>
+                                                            <Text fontSize="sm" color="gray.300">{user.email}</Text>
+                                                        </Box>
+                                                    </Td>
+                                                    {isWideVersion && <Td>{user.createdAt}</Td>}
+                                                    <Td>
+                                                        <IconButton
+                                                            aria-label="Editar usuário"
+                                                            icon={<Icon as={RiPencilLine} fontSize="16" />}
+                                                            as="a"
+                                                            size="sm"
+                                                            fontSize="sm"
+                                                            colorScheme="purple"
+                                                            cursor="pointer"
+                                                        />
 
-                                </Td>
-                            </Tr>
-                        </Tbody>
-                    </Table>
+                                                    </Td>
+                                                </Tr>
+                                            )
+                                        })}
+                                    </Tbody>
+                                </Table>
 
-                    <Pagination />
+                                <Pagination 
+                                    totalCountOfRegisters={data.totalCount}
+                                    currentPage={page}
+                                    onPageChange={setPage}
+                                />
+                            </>
+                        )
+                    }
+
                 </Box>
             </Flex>
         </Box>
